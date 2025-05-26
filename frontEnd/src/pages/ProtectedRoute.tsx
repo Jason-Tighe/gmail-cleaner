@@ -3,11 +3,7 @@ import { useAuth } from '../hooks/Auth'
 import type { JSX } from 'react'
 
 export default function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth()
-
-  if (!user) {
-    return <Navigate to="/" />
-  }
-
-  return children
+    const { user } = useAuth();
+  
+    return user ? children : <Navigate to="/" />;
 }
