@@ -1,3 +1,5 @@
+import GoogleSignInButton from '../components/LoginModal';
+
 
 export default function Login() {
     return (
@@ -11,12 +13,10 @@ export default function Login() {
                     {/* Left Section: Login */}
                     <div className="w-full md:w-1/2 p-8 flex flex-col items-center justify-center">
                         <h1 className="text-2xl font-bold text-white mb-4">Sign In</h1>
-                        <p className="text-white mb-6 text-center">Log in to clean up your inbox effortlessly.</p>
-                        <button
-                            className="flex items-center justify-center w-full py-2 px-4 bg-red-800 text-white font-medium rounded-md hover:bg-red-600"
-                        >
-                            Connect with Google
-                        </button>
+                        <p className="text-white mb-6 text-center">
+                            Log in to clean up your inbox effortlessly.
+                        </p>
+                        <GoogleSignInButton />
                     </div>
                     {/* Right Section: Introduction */}
                     <div className="w-full md:w-3/5 bg-red-800 text-white p-10 flex flex-col justify-center">
