@@ -21,7 +21,7 @@ export default function GmailMessageCard (): JSX.Element {
                 });
                 
                 setEmailData(response.data);
-            } catch (err: any) {
+            } catch (err) {
                 setError('Failed to fetch email data');
             } finally {
                 setLoading(false);

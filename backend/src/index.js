@@ -21,7 +21,13 @@ app.use(cors({
 
 app.use(express.json());
 
-app.use('/api/gmail', gmailRoutes);
+app.use('/api/gmail', (req, res, next) => {
+  console.log(`Request Method: ${req.method}`);
+  console.log(`Request URL: ${req.url}`);
+  console.log(`Request Body:`, req.body);
+  console.log(`Request Query:`, req.query);
+  next();
+}, gmailRoutes);
 
 
 app.get('/', (req, res) => res.send('Backend is running!'))
