@@ -16,6 +16,7 @@ export default function GoogleSignInButton() {
     const navigate = useNavigate();
   
     const login = useGoogleLogin({
+      scope: 'https://www.googleapis.com/auth/gmail.readonly',
       onSuccess: async (tokenResponse) => {
         try {
           const res = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -23,19 +24,21 @@ export default function GoogleSignInButton() {
               Authorization: `Bearer ${tokenResponse.access_token}`,
             },
           });
-  
+          const accessToken = tokenResponse.access_token;
           const userInfo = res.data as UserInfo;
   
           // Set the user in context
           setUser({
             name: userInfo.name,
             email: userInfo.email,
+            accessToken
           });
   
           // Optional: save to localStorage too if you want persistence
           localStorage.setItem('user', JSON.stringify({
             name: userInfo.name,
             email: userInfo.email,
+            accessToken
           }));
   
           // Redirect to inbox

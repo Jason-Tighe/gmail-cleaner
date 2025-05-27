@@ -6,8 +6,8 @@ import { useAuth } from '../context/AuthContext';
 
 export default function GmailMessageCard (): JSX.Element {
     const { user } = useAuth();
-    const emailId = user?.email
-    console.log('Email ID:', emailId);
+    console.log('User:', user);
+
 
     const [emailData, setEmailData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -17,7 +17,7 @@ export default function GmailMessageCard (): JSX.Element {
         const fetchEmailData = async () => {
             try {
                 const response = await axios.get(`/api/gmail/email`, {
-                    params: { id: emailId },
+                    params: { email: user?.email, accessToken: user?.accessToken },
                 });
                 
                 setEmailData(response.data);
@@ -29,7 +29,7 @@ export default function GmailMessageCard (): JSX.Element {
         };
 
         fetchEmailData();
-    }, [emailId]);
+    }, [user?.email, user?.accessToken]);
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
