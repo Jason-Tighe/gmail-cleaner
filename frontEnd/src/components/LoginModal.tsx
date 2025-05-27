@@ -3,6 +3,14 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/Auth'; 
 
+
+type UserInfo = {
+  name: string;
+  email: string;
+};
+
+
+
 export default function GoogleSignInButton() {
     const { setUser } = useAuth();
     const navigate = useNavigate();
@@ -16,7 +24,7 @@ export default function GoogleSignInButton() {
             },
           });
   
-          const userInfo = res.data;
+          const userInfo = res.data as UserInfo;
   
           // Set the user in context
           setUser({
