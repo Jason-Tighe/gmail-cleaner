@@ -53,6 +53,35 @@ export default class GmailService {
         }
       }
       
+      async getEmailsByYear(email, accessToken, year) {
+        try {
+            const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01`, {
+                method: 'GET',
+                headers: {
+                Authorization: `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+                }
+            });
+    
+            console.log('Full API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+            });
+    
+            if (!response.ok) {
+                const errorData = await response.json(); // Parse error body
+                throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
+            }
+            const data = await response.json();
+            console.log('Fetched emails by year:', data);
+            return data.messages || [];
+        }  catch (error) {
+          console.error('Error fetching emails by year:', error);
+          return [];
+        } 
+      }
+
       async describeEmail(emailAddress, emails, accessToken) {
         try {
           const emailsWithDetails = [];
