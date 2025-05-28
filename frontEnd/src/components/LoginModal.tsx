@@ -9,8 +9,6 @@ type UserInfo = {
   email: string;
 };
 
-
-
 export default function GoogleSignInButton() {
     const { setUser } = useAuth();
     const navigate = useNavigate();
@@ -23,25 +21,22 @@ export default function GoogleSignInButton() {
             headers: {
               Authorization: `Bearer ${tokenResponse.access_token}`,
             },
-          });
+          });     
           const accessToken = tokenResponse.access_token;
           const userInfo = res.data as UserInfo;
   
-          // Set the user in context
           setUser({
             name: userInfo.name,
             email: userInfo.email,
             accessToken
           });
   
-          // Optional: save to localStorage too if you want persistence
           localStorage.setItem('user', JSON.stringify({
             name: userInfo.name,
             email: userInfo.email,
             accessToken
           }));
   
-          // Redirect to inbox
           navigate('/inbox');
         } catch (err) {
           console.error('Login failed:', err);
@@ -49,7 +44,6 @@ export default function GoogleSignInButton() {
       },
       onError: (err) => console.error('Google Login Error:', err),
     });
-  
     return (
       <button onClick={() => login()} className="bg-white text-black px-4 py-2 rounded">
         Sign in with Google
