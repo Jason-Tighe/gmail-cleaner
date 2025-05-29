@@ -1,13 +1,11 @@
 import { Outlet } from 'react-router-dom';
-import InboxNav from '../components/InboxNav';
 
 export default function InboxLayout() {
-  return (
-    <div className="max-w-6xl mx-auto">
-      <InboxNav />
-      <div className="mt-6">
-        <Outlet /> 
+    return (
+      <div className="flex items-center justify-center min-h-[90vh]">
+        <div className="w-full max-w-5xl bg-white bg-opacity-90 backdrop-blur-md rounded-xl shadow-2xl p-8">
+          <Outlet />
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }

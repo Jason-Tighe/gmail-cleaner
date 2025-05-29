@@ -16,6 +16,7 @@ import InboxLayout from './layouts/IndexLayout.tsx'
 // Deletion is just an array of Ids
 // Maybe we have some clear options, Like by year? by sender? and then just pagination?
 
+
 export default function App() {
   return (
     <div className="min-h-screen to-slate-700 from-slate-900 bg-gradient-to-l flex flex-col">

@@ -42,27 +42,27 @@ export default function InboxDashboard() {
     ]
 
     return (
-      <div className="flex flex-col h-full">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800">Clean Up Your Inbox</h2>
-        <p className="text-gray-500 mt-2">Choose how you'd like to organize your emails</p>
-      </div>
-      
-      <div className="flex-1 flex items-center justify-center">
-        <div className="grid grid-cols-2 gap-6 w-full max-w-2xl">
-          {actionButtons.map((button, index) => (
-            <button
-              key={index}
-              className={`flex flex-col items-center justify-center p-6 ${button.colorClass} rounded-xl shadow-md transition-all duration-200 hover:shadow-lg h-full`}
-              onClick={button.action}
-            >
-              <span className="text-4xl mb-3">{button.icon}</span>
-              <span className="text-lg font-medium text-gray-700">{button.title}</span>
-              <span className="text-sm text-gray-500 mt-1">{button.description}</span>
-            </button>
-          ))}
+      <div className="flex flex-col h-full py-24 items-center justify-center">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-extrabold text-gray-900">Inbox Cleanup</h1>
+          <p className="text-lg text-gray-600 mt-2">Take control of your emails effortlessly</p>
+        </div>
+        
+        <div className="flex items-center justify-center w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-3xl">
+        {actionButtons.map((button, index) => (
+          <button
+            key={index}
+            className={`flex flex-col items-center justify-center p-8 ${button.colorClass} rounded-lg shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl h-full`}
+            onClick={button.action}
+          >
+            <span className="text-5xl mb-4">{button.icon}</span>
+            <span className="text-xl font-semibold text-gray-800">{button.title}</span>
+            <span className="text-sm text-gray-500 mt-2">{button.description}</span>
+          </button>
+        ))}
+          </div>
         </div>
       </div>
-    </div>
     );
 }
