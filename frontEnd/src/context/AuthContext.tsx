@@ -9,23 +9,32 @@ type User = {
 type AuthContextType = {
   user: User | null
   setUser: (user: User | null) => void
+  logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
-  setUser: () => {}
+  setUser: () => {},
+  logout: () => {}
 })
 
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
+  
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  }
+
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
 export const useAuth = () => useContext(AuthContext)
+
 

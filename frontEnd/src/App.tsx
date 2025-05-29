@@ -1,7 +1,11 @@
 import { Routes, Route } from 'react-router-dom'
 import Login from './pages/Login.tsx'
-import Inbox from './pages/Inbox.tsx'
 import ProtectedRoute from './pages/ProtectedRoute.tsx'
+import Sender from './pages/Sender.tsx'
+import YearPage from './pages/YearPage.tsx'
+import GeneralEmail from './pages/GeneralEmail.tsx'
+import InboxDashboard from './pages/InboxDashboard.tsx'
+import InboxLayout from './layouts/IndexLayout.tsx'
 
 // so now that we can authenticate and pull email data
 // We'll need to do several things:
@@ -22,10 +26,15 @@ export default function App() {
             path="/inbox" 
             element={
               <ProtectedRoute>
-                <Inbox />
+                <InboxLayout /> 
               </ProtectedRoute>
-            } 
-          />
+            }
+          >
+            <Route index element={<InboxDashboard />} />
+            <Route path="by-date" element={<YearPage />} />
+            <Route path="by-sender" element={<Sender />} />
+            <Route path="search" element={<GeneralEmail />} />
+          </Route>
         </Routes>
       </main>
     </div>
