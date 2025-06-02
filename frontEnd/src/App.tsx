@@ -1,4 +1,3 @@
-import YearDetail from './pages/YearDetail.tsx'
 import DateRangeDetail from './pages/DateRange.tsx'
 import { Route, Routes } from 'react-router-dom'
 import InboxLayout from './layouts/IndexLayout.tsx'
@@ -27,8 +26,7 @@ export default function App() {
           >
             <Route index element={<InboxDashboard />} />
             <Route path="by-date" element={<YearPage />} />
-              <Route path="by-date/:year" element={<YearDetail />} />        
-              <Route path="date-range" element={<DateRangeDetail />} />      
+            <Route path="date-range" element={<DateRangeDetail />} />      
             <Route path="by-sender" element={<Sender />} />
             <Route path="search" element={<GeneralEmail />} />
           </Route>

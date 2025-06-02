@@ -1,118 +1,165 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useRef, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+
+
 
 export default function ByYear({
-  year,
-  startDate,
-  endDate,
-  onDeleteSuccess,
-}: {
-  year?: string;
-  startDate?: string;
-  endDate?: string;
-  onDeleteSuccess?: () => void; // callback after deletion
-}) {
-  const [emailCount, setEmailCount] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [ catcheKey, setCacheKey ] = useState<string | null>(null);
-  const { user } = useAuth();
-  const didFetch = useRef(false);
+    year,
+    onBack,
+    isFlipped, // passed from YearPage to control visibility
+    onFlip,    // passed from YearPage, called when filter is selected
+  }: {
+    year: string;
+    onBack: () => void;
+    isFlipped: boolean;
+    onFlip: () => void;
+  }) {
+    const [filter, setFilter] = useState<string | null>(null);
+    const [emailCount, setEmailCount] = useState<number | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
   
-
-  useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
-
-    const fetchEmailCount = async () => {
-      setLoading(true);
+    const { user } = useAuth();
+    const showBack = filter !== null;
+  
+    useEffect(() => {
+      if (!filter) return;
+  
+      const fetchEmailCount = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await axios.get(`/api/gmail/email/${year}`, {
+            headers: {
+              Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
+            },
+            params: {
+              email: user?.email ?? localStorage.getItem("email"),
+              filter,
+            },
+          });
+          setEmailCount(response.data.emailTotalCount);
+        } catch {
+          setError("Failed to fetch email count.");
+        } finally {
+          setLoading(false);
+        }
+      };
+  
+      fetchEmailCount();
+    }, [filter, year, user]);
+  
+    const handleFilterClick = (selectedFilter: string) => {
+      setFilter(selectedFilter);
+      onFlip();
+    };
+  
+    const handleDeleteAll = async () => {
+      if (!confirm("Are you sure you want to delete all these emails?")) return;
+  
+      setDeleting(true);
       setError(null);
       try {
-        interface EmailCountResponse {
-            cacheKey: string;
-            emailTotalCount: number;
-        }
-
-        let response;
-        if (year) {
-            response = await axios.get<EmailCountResponse>(`/api/gmail/email/${year}`, {
-                headers: {
-                    'Authorization': `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`
-                },
-                params: {
-                    email: user?.email ?? localStorage.getItem("email")
-                }
-            });
-        } else if (startDate && endDate) {
-            response = await axios.get<EmailCountResponse>(`/api/gmail/email/date-range`, {
-                params: { startDate, endDate },
-            });
-        }
-        if (response) {
-          setEmailCount(response.data.emailTotalCount);
-          setCacheKey(response.data.cacheKey);
-        }
-      } catch (err) {
-        setError("Failed to fetch email count.");
+        await axios.delete(`/email/${year}`, {
+          headers: {
+            Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
+          },
+          params: { filter },
+        });
+  
+        setEmailCount(0);
+        alert("Emails deleted successfully.");
+        handleBackClick();
+      } catch {
+        setError("Failed to delete emails.");
       } finally {
-        setLoading(false);
+        setDeleting(false);
       }
     };
-
-    fetchEmailCount();
-  }, [year, startDate, endDate]);
-
-  const handleDeleteAll = async () => {
-    if (!confirm("Are you sure you want to delete all these emails? This action cannot be undone.")) return;
-
-    setDeleting(true);
-    setError(null);
-    try {
-      if (year) {
-        await axios.delete(`/email/${year}`);
-      } else if (startDate && endDate) {
-        await axios.delete(`/email/date-range`, { params: { startDate, endDate } });
-      }
-      setEmailCount(0);
-      onDeleteSuccess?.();
-      alert("Emails deleted successfully.");
-    } catch (err) {
-      setError("Failed to delete emails.");
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  if (loading) return <p className="text-gray-600">Loading email count...</p>;
-
-  if (error) return <p className="text-red-600">{error}</p>;
-
-  if (emailCount === null) return null;
-
-  return (
-    <div className="p-8 bg-gray-100 rounded-lg shadow-lg max-w-md mx-auto text-center">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-        {year
-          ? `Emails from ${year}`
-          : `Emails from ${startDate} to ${endDate}`}
-      </h2>
-      <p className="text-lg text-gray-700 mb-6">
-        Total emails: <span className="font-bold">{emailCount}</span>
-      </p>
-      <button
-        onClick={handleDeleteAll}
-        disabled={emailCount === 0 || deleting}
-        className={`px-6 py-3 rounded-lg text-white font-semibold transition ${
-          emailCount === 0 || deleting
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-amber-500 hover:bg-amber-600"
-        }`}
-      >
-        {deleting ? "Deleting..." : "Delete All"}
-      </button>
-    </div>
-  );
-}
+  
+    const handleBackClick = () => {
+      setFilter(null);
+      setEmailCount(null);
+      setError(null);
+      onBack();
+    };
+  
+    return (
+      <div className="relative bg-white rounded-lg shadow-lg h-[280px] overflow-hidden transition-transform duration-500 ease-in-out">
+        <div
+          className={`absolute inset-0 flex w-[200%] transition-transform duration-400 ease-in-out ${
+            isFlipped ? "-translate-x-1/2" : "translate-x-0"
+          }`}
+        >
+          {/* Column 1: Filters */}
+          <div className="w-1/2 py-8 flex flex-col justify-between">
+            <div className="text-center">
+              <span className="text-5xl font-semibold text-gray-800">{year}</span>
+              <p className="text-sm text-gray-500 mt-2 mb-6">View emails for this year</p>
+                <div className="mt-auto py-24 flex">
+                    <button
+                        className="flex-1 px-2 py-3 bg-blue-500 text-white text-sm font-medium rounded-bl-lg hover:bg-blue-600"
+                        onClick={() => handleFilterClick("read")}
+                    >
+                        Read
+                    </button>
+                    <button
+                        className="flex-1 px-2 py-3 bg-yellow-500 text-white text-sm font-medium hover:bg-yellow-600"
+                        onClick={() => handleFilterClick("unread")}
+                    >
+                        Unread
+                    </button>
+                    <button
+                        className="flex-1 px-2 py-4 bg-green-500 text-white text-sm font-medium rounded-br-lg hover:bg-green-600"
+                        onClick={() => handleFilterClick("all")}
+                    >
+                        All
+                    </button>
+                </div>
+            </div>
+          </div>
+  
+          {/* Column 2: Delete / Back */}
+          <div className="w-1/2 py-6 flex flex-col justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4 ml-4">
+                {filter?.toUpperCase()} Emails from {year} 
+              </h2>
+  
+              {loading && <p className="text-gray-600 text-lg text-center mt-8">Loading email count...</p>}
+              {error && <p className="text-red-600 text-center mt-8">{error}</p>}
+  
+              {!loading && !error && (
+                <p className="text-lg text-gray-700 mt-8 text-center">
+                  Total emails: <span className="font-bold">{emailCount ?? 0}</span>
+                </p>
+              )}
+            </div>
+  
+            <div className="mt-auto py-20 flex">
+                <button
+                    onClick={handleDeleteAll}
+                    disabled={emailCount === 0 || deleting}
+                    className={`flex-1 px-2 py-4 text-white text-sm font-medium rounded-bl-lg transition-colors ${
+                    emailCount === 0 || deleting
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-red-500 hover:bg-red-600"
+                    }`}
+                >
+                    {deleting ? "Deleting..." : "Delete All"}
+                </button>
+                <button
+                    onClick={handleBackClick}
+                    className="flex-1 px-2 py-4 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-br-lg"
+                >
+                    ← Back
+                </button>
+                </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  

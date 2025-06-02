@@ -59,16 +59,30 @@ export default class GmailService {
         }
       }
       
-      async getEmailsByYear(email, accessToken, year) {
+      async getEmailsByYear(email, accessToken, year, filter) {
         const allMessages = [];
         let nextPageToken = null;
+
+        const start = `${year}-01-01`;
+        const end = `${year + 1}-01-01`;
+
+        let query = `after:${start} before:${end}`;
+        if (filter === 'unread') {
+            query += ' is:unread';
+        } else if (filter === 'read') {
+            query += ' -is:unread';
+        }
+        console.log('Query:', query);
+
         try {
             do {
-                // const unread = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
-                // const read = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 -is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
-                // const both = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01&pageToken=${nextPageToken || ''}`, {
+                const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
+                url.searchParams.append("q", query);
+                if (nextPageToken) {
+                    url.searchParams.append("pageToken", nextPageToken);
+                }
 
-                const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 -is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
+                const response = await fetch(url.toString(), {
                     method: 'GET',
                     headers: {
                         Authorization: `${accessToken}`,
@@ -83,15 +97,14 @@ export default class GmailService {
     
                 const data = await response.json();
                 const ids = (data.messages || []).map(msg => msg.id);
-                
+
                 allMessages.push(...ids);
                 nextPageToken = data.nextPageToken;
                 
             } while (nextPageToken);
             
             const emailTotalCount = allMessages.length;
-            const cacheKey = `emails_${email}_${year}`;
-
+            const cacheKey = `emails_${email}_${year}_${filter}`; 
             
             await setCache(cacheKey, allMessages, 3600000);
             const cachedData = await getCache(cacheKey);

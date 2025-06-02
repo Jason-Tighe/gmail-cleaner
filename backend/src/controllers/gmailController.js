@@ -31,9 +31,10 @@ export const getEmailsByYear = async (req, res) => {
         console.log('Query Parameters:', req.query);
         console.log('Headers:', req.headers);
         const year = req.params.year;
-        const emailAddress = req.query.email;    
+        const emailAddress = req.query.email;
+        const filter = req.query.filter; 
         const accessToken  = req.headers.authorization
-        const { cacheKey, emailTotalCount } = await gmailService.getEmailsByYear(emailAddress, accessToken, year);
+        const { cacheKey, emailTotalCount } = await gmailService.getEmailsByYear(emailAddress, accessToken, year, filter);
         res.status(200).json({ cacheKey, emailTotalCount });
     } catch (error) {
         console.error('Error fetching emails by year:', error);
