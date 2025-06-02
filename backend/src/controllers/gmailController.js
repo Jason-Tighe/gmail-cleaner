@@ -53,3 +53,15 @@ export const getEmailsByDateRange = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
+
+export const batchDeleteEmails = async (req, res) => {
+    try {
+        console.log('Batch deleting emails for user:', req.query);
+        const { emailAddress, accessToken, cacheKey } = req.query;
+        const response = await gmailService.batchDeleteEmails(emailAddress, accessToken, cacheKey);
+        res.status(200).json(response);
+    } catch (error) {
+        console.error('Error batch deleting emails:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}

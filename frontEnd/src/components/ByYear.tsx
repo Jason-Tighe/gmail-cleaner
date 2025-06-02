@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
+type EmailResponse = {
+  emailTotalCount: number;
+  cacheKey: string;
+}
 
 
 export default function ByYear({
@@ -20,6 +25,7 @@ export default function ByYear({
     const [loading, setLoading] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [cacheKey, setCacheKey] = useState<string | null>(null);
   
     const { user } = useAuth();
     const showBack = filter !== null;
@@ -31,7 +37,7 @@ export default function ByYear({
         setLoading(true);
         setError(null);
         try {
-          const response = await axios.get(`/api/gmail/email/${year}`, {
+          const response = await axios.get<EmailResponse>(`/api/gmail/email/${year}`, {
             headers: {
               Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
             },
@@ -40,6 +46,7 @@ export default function ByYear({
               filter,
             },
           });
+          setCacheKey(response.data.cacheKey);
           setEmailCount(response.data.emailTotalCount);
         } catch {
           setError("Failed to fetch email count.");
@@ -66,7 +73,7 @@ export default function ByYear({
           headers: {
             Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
           },
-          params: { filter },
+          params: { cacheKey: cacheKey },
         });
   
         setEmailCount(0);
