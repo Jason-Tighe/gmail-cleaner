@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import gmailRoutes from './routes/gmail.js';
+import utilsRoutes from './routes/utils.js';
 
 
 dotenv.config();
@@ -29,6 +30,13 @@ app.use('/api/gmail', (req, res, next) => {
   next();
 }, gmailRoutes);
 
+app.use('/api/utils', (req, res, next) => {
+  console.log(`Request Method: ${req.method}`);
+  console.log(`Request URL: ${req.url}`);
+  console.log(`Request Body:`, req.body);
+  console.log(`Request Query:`, req.query);
+  next();
+}, utilsRoutes);
 
 app.get('/', (req, res) => res.send('Backend is running!'))
 app.get('/api/status', (req, res) => res.json({ message: 'Backend connected!' }))

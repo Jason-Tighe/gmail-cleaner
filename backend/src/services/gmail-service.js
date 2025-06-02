@@ -1,6 +1,12 @@
 import e from 'express';
 import gmail from 'googleapis'
 import { jwtDecode } from 'jwt-decode';
+import {
+    setCache,
+    getCache,
+    clearCache,
+    estimateCacheSize
+} from '../utils/cache.js';
 
 
 export default class GmailService {
@@ -41,7 +47,7 @@ export default class GmailService {
 
 
           if (!response.ok) {
-            const errorData = await response.json(); // Parse error body
+            const errorData = await response.json();
             throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
             }
           const data = await response.json();
@@ -54,32 +60,49 @@ export default class GmailService {
       }
       
       async getEmailsByYear(email, accessToken, year) {
+        const allMessages = [];
+        let nextPageToken = null;
         try {
-            const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01`, {
-                method: 'GET',
-                headers: {
-                Authorization: `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
+            do {
+                // const unread = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
+                // const read = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 -is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
+                // const both = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01&pageToken=${nextPageToken || ''}`, {
+
+                const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?q=after:${year}-01-01 before:${year + 1}-01-01 -is:unread&pageToken=${nextPageToken || ''}&pageToken=${nextPageToken || ''}`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+    
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
                 }
-            });
     
-            console.log('Full API Response:', {
-                status: response.status,
-                statusText: response.statusText,
-                headers: Object.fromEntries(response.headers.entries()),
-            });
-    
-            if (!response.ok) {
-                const errorData = await response.json(); // Parse error body
-                throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
-            }
-            const data = await response.json();
-            console.log('Fetched emails by year:', data);
-            return data.messages || [];
-        }  catch (error) {
-          console.error('Error fetching emails by year:', error);
-          return [];
-        } 
+                const data = await response.json();
+                const ids = (data.messages || []).map(msg => msg.id);
+                
+                allMessages.push(...ids);
+                nextPageToken = data.nextPageToken;
+                
+            } while (nextPageToken);
+            
+            const emailTotalCount = allMessages.length;
+            const cacheKey = `emails_${email}_${year}`;
+
+            
+            await setCache(cacheKey, allMessages, 3600000);
+            const cachedData = await getCache(cacheKey);
+            console.log('cachedData:', cachedData);
+           
+            console.log('Fetched emails by year:', emailTotalCount);
+            return { cacheKey, emailTotalCount };
+        } catch (error) {
+            console.error('Error fetching emails by year:', error);
+            return [];
+        }
       }
 
       async describeEmail(emailAddress, emails, accessToken) {

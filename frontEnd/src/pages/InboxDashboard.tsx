@@ -45,7 +45,6 @@ export default function InboxDashboard() {
       <div className="flex flex-col h-full py-24 items-center justify-center">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-gray-900">Inbox Cleanup</h1>
-          <p className="text-lg text-gray-600 mt-2">Take control of your emails effortlessly</p>
         </div>
         
         <div className="flex items-center justify-center w-full">

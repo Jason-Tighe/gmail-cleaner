@@ -12,7 +12,7 @@ import InboxNav from './components/InboxNav.tsx'
 
 export default function App() {
   return (
-    <div className="min-h-screen to-slate-700 from-slate-900 bg-gradient-to-l flex flex-col">
+    <div className="min-h-screen bg-slate-700 flex flex-col">
       <main className="flex-grow p-4">
         <Routes>
           <Route path="/" element={<Login />} />

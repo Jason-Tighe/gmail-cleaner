@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 export default function ByYear({
   year,
@@ -17,24 +18,42 @@ export default function ByYear({
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ catcheKey, setCacheKey ] = useState<string | null>(null);
+  const { user } = useAuth();
+  const didFetch = useRef(false);
+  
 
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
+
     const fetchEmailCount = async () => {
       setLoading(true);
       setError(null);
       try {
         interface EmailCountResponse {
-          count: number;
+            cacheKey: string;
+            emailTotalCount: number;
         }
 
         let response;
         if (year) {
-          response = await axios.get<EmailCountResponse>(`/email/year/count`, { params: { year } });
+            response = await axios.get<EmailCountResponse>(`/api/gmail/email/${year}`, {
+                headers: {
+                    'Authorization': `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`
+                },
+                params: {
+                    email: user?.email ?? localStorage.getItem("email")
+                }
+            });
         } else if (startDate && endDate) {
-          response = await axios.get<EmailCountResponse>(`/email/date-range/count`, { params: { startDate, endDate } });
+            response = await axios.get<EmailCountResponse>(`/api/gmail/email/date-range`, {
+                params: { startDate, endDate },
+            });
         }
         if (response) {
-          setEmailCount(response.data.count);
+          setEmailCount(response.data.emailTotalCount);
+          setCacheKey(response.data.cacheKey);
         }
       } catch (err) {
         setError("Failed to fetch email count.");
@@ -53,7 +72,7 @@ export default function ByYear({
     setError(null);
     try {
       if (year) {
-        await axios.delete(`/email/year`, { params: { year } });
+        await axios.delete(`/email/${year}`);
       } else if (startDate && endDate) {
         await axios.delete(`/email/date-range`, { params: { startDate, endDate } });
       }
