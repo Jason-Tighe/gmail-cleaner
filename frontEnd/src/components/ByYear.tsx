@@ -12,13 +12,15 @@ type EmailResponse = {
 export default function ByYear({
     year,
     onBack,
-    isFlipped, // passed from YearPage to control visibility
-    onFlip,    // passed from YearPage, called when filter is selected
+    isFlipped,
+    onFlip,    
+    shouldFetch,
   }: {
     year: string;
     onBack: () => void;
     isFlipped: boolean;
     onFlip: () => void;
+    shouldFetch?: boolean; 
   }) {
     const [filter, setFilter] = useState<string | null>(null);
     const [emailCount, setEmailCount] = useState<number | null>(null);
@@ -26,12 +28,14 @@ export default function ByYear({
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [cacheKey, setCacheKey] = useState<string | null>(null);
+    const [hasFetched, setHasFetched] = useState(false);
+
   
     const { user } = useAuth();
     const showBack = filter !== null;
   
     useEffect(() => {
-      if (!filter) return;
+      if (!filter || !isFlipped || !shouldFetch || hasFetched) return;
   
       const fetchEmailCount = async () => {
         setLoading(true);
@@ -56,7 +60,13 @@ export default function ByYear({
       };
   
       fetchEmailCount();
-    }, [filter, year, user]);
+    }, [filter, year, user, isFlipped, shouldFetch, hasFetched]);
+
+    useEffect(() => {
+        if (!isFlipped) {
+          setHasFetched(false);
+        }
+      }, [isFlipped]);
   
     const handleFilterClick = (selectedFilter: string) => {
       setFilter(selectedFilter);

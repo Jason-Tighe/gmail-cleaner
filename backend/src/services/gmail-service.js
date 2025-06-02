@@ -118,6 +118,60 @@ export default class GmailService {
         }
       }
 
+      async getEmailsByDateRange(email, accessToken, startDate, endDate, filter) {
+        const allMessages = [];
+        let nextPageToken = null;
+
+        let query = `after:${startDate} before:${endDate}`;
+        if (filter === 'unread') {
+            query += ' is:unread';
+        } else if (filter === 'read') {
+            query += ' -is:unread';
+        }
+        console.log('Query:', query);
+
+        try {
+            do {
+                const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
+                url.searchParams.append("q", query);
+                if (nextPageToken) {
+                    url.searchParams.append("pageToken", nextPageToken);
+                }
+
+                const response = await fetch(url.toString(), {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+    
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
+                }
+    
+                const data = await response.json();
+                const ids = (data.messages || []).map(msg => msg.id);
+
+                allMessages.push(...ids);
+                nextPageToken = data.nextPageToken;
+                
+            } while (nextPageToken);
+            
+            console.log('Fetched emails by date range:', allMessages.length);
+            const emailTotalCount = allMessages.length;
+            const cacheKey = `emails_${email}_${startDate}_${endDate}_${filter}`; 
+            
+            await setCache(cacheKey, allMessages, 3600000);
+            
+            return { cacheKey, emailTotalCount };
+        } catch (error) {
+            console.error('Error fetching emails by date range:', error);
+            return [];
+        }
+      }
+
       async describeEmail(emailAddress, emails, accessToken) {
         try {
           const emailsWithDetails = [];

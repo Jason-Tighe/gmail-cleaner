@@ -45,9 +45,10 @@ export const getEmailsByYear = async (req, res) => {
 export const getEmailsByDateRange = async (req, res) => {
     try {
         console.log('Fetching emails by year for user:', req.query);
-        const { emailAddress, accessToken, startDate, EndDate } = req.query;
-        const emails = await gmailService.getEmailsByDateRange(emailAddress, accessToken, startDate, EndDate);
-        res.status(200).json(emails);
+        const { email, startDate, endDate, filter } = req.query;
+        const accessToken  = req.headers.authorization
+        const { cacheKey, emailTotalCount } = await gmailService.getEmailsByDateRange(email, accessToken, startDate, endDate, filter);
+        res.status(200).json({ cacheKey, emailTotalCount });
     } catch (error) {
         console.error('Error fetching emails by year:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
