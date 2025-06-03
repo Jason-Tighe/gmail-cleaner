@@ -86,14 +86,7 @@ export default function ByDateRange({ onBack }: { onBack: () => void }) {
     onBack();
   };
 
-  const handleSubmit = () => {
-    if (!startDate || !endDate) {
-      alert("Please select both start and end dates.");
-      return;
-    }
-    setSubmitted(true);
-  };
-
+ 
   return (
     <div className="relative bg-white rounded-lg shadow-lg h-[280px] overflow-hidden transition-transform duration-500 ease-in-out">
     <div

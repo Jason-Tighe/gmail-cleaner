@@ -3,9 +3,8 @@ import GmailService from '../services/gmail-service.js';
 
 const gmailService = new GmailService();
 
-// An issue i'm going to have is that aside from the general email fetching, the others really don't need the Id's or info from the response. Like there's no need to send them to the frontend only to send them back to the backend, so i need to think of something else.
-// Cache the array of email Ids probably that way we can just sent the count to the frontend and then we'll grab the Id's from the cache to batchDelete them? Maybe a different option if that makes sense it really only has to be temporary, like just when they're on the endpoint
 
+// Get Emails by a set of criteria/filters from the frontend
 export const getEmails = async (req, res) => {
     try {
         console.log('Fetching emails for user:', req.query);
@@ -14,9 +13,7 @@ export const getEmails = async (req, res) => {
         // console.log('Token validity:', tokenValidity);
         
         const emails = await gmailService.getEmails(emailAddress, accessToken);
-        console.log('Fetched emails:', emails);
         const emailDetails = await gmailService.describeEmail(emailAddress, emails, accessToken);
-        console.log('Email details:', emailDetails);
         res.status(200).json(emailDetails);
     } catch (error) {
         console.error('Error fetching emails:', error);
@@ -24,12 +21,9 @@ export const getEmails = async (req, res) => {
     }
 };
 
-
+// Get All Emails by Year
 export const getEmailsByYear = async (req, res) => {
     try {
-        console.log('Fetching emails by year for user:', req.params);
-        console.log('Query Parameters:', req.query);
-        console.log('Headers:', req.headers);
         const year = req.params.year;
         const emailAddress = req.query.email;
         const filter = req.query.filter; 
@@ -42,9 +36,9 @@ export const getEmailsByYear = async (req, res) => {
     }
 }
 
+// Get Emails by Date Range
 export const getEmailsByDateRange = async (req, res) => {
     try {
-        console.log('Fetching emails by year for user:', req.query);
         const { email, startDate, endDate, filter } = req.query;
         const accessToken  = req.headers.authorization
         const { cacheKey, emailTotalCount } = await gmailService.getEmailsByDateRange(email, accessToken, startDate, endDate, filter);
@@ -55,6 +49,57 @@ export const getEmailsByDateRange = async (req, res) => {
     }
 }
 
+// Get Emails by Sender
+export const getEmailsBySender = async (req, res) => {
+    try {
+        const { email, startDate, endDate, filter} = req.query;
+        let sender = req.query.sender
+        let emailTotalCount, cacheKey;
+        if (!Array.isArray(sender)) {
+            sender = [sender];
+        }
+        const accessToken  = req.headers.authorization
+        if(sender.length === 0) {
+            return res.status(400).json({ success: false, message: 'Sender email is required' });
+        }
+        if(startDate === '' && endDate === '') {
+            ({ emailTotalCount, cacheKey } = await gmailService.getEmailsBySender(email, sender, filter, accessToken));
+        } else if(startDate && endDate) {
+            ({ emailTotalCount, cacheKey } = await gmailService.getEmailsBySenderWDateRange(email, sender, filter, startDate, endDate, accessToken));
+        }
+        res.status(200).json({ emailTotalCount, cacheKey} );
+    } catch (error) {
+        console.error('Error fetching emails by sender:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// Get Labels
+export const getLabels = async (req, res) => {
+    try {
+        console.log('Fetching labels for user:', req.query);
+        const { emailAddress, accessToken } = req.query;
+        const labels = await gmailService.getLabels(emailAddress, accessToken);
+        res.status(200).json(labels);
+    } catch (error) {
+        console.error('Error fetching labels:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// Get Emails by Label
+export const getEmailsByLabel = async (req, res) => {
+    try {
+        const { email, label, accessToken } = req.query;
+        const { emailTotalCount, cacheKey} = await gmailService.getEmailsByLabel(email, label, accessToken);
+        res.status(200).json(emailDetails);
+    } catch (error) {
+        console.error('Error fetching emails by label:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+// Batch Delete Emails (Just needs an array of email IDs)
 export const batchDeleteEmails = async (req, res) => {
     try {
         console.log('Batch deleting emails for user:', req.query);

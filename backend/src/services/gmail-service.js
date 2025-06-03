@@ -34,7 +34,7 @@ export default class GmailService {
           const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages?maxResults=10`, {
             method: 'GET',
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `${accessToken}`,
               'Content-Type': 'application/json'
             }
           });
@@ -72,7 +72,7 @@ export default class GmailService {
         } else if (filter === 'read') {
             query += ' -is:unread';
         }
-        console.log('Query:', query);
+        console.log('getEmailsByYear Query:', query);
 
         try {
             do {
@@ -128,7 +128,7 @@ export default class GmailService {
         } else if (filter === 'read') {
             query += ' -is:unread';
         }
-        console.log('Query:', query);
+        console.log('getEmailsByDateRange Query:', query);
 
         try {
             do {
@@ -180,7 +180,7 @@ export default class GmailService {
             const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages/${email.id}`, {
               method: 'GET',
               headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `${accessToken}`,
                 'Content-Type': 'application/json'
               }
             });
@@ -197,6 +197,119 @@ export default class GmailService {
         }
       }
 
+      // I guess should also offer a date range option
+      async getEmailsBySenderWDateRange(email, senders, filter, startDate, endDate, accessToken) {
+        const allMessages = [];
+        let nextPageToken = null;
+
+        let query = Array.isArray(senders) && senders.length > 1 
+          ? senders.map(sender => `from:${sender}`).join(' OR ') 
+          : `from:${senders[0]}`;
+
+        query += ` after:${startDate} before:${endDate}`;
+
+        if (filter === 'unread') {
+          query += ' is:unread';
+        } else if (filter === 'read') {
+          query += ' -is:unread';
+        }
+
+        console.log('getEmailsBySenderWDateRange Query:', query);
+
+        if (query.length > 2048) {
+          throw new Error('Query string exceeds the maximum allowed length of 2048 characters.');
+        }
+
+        try {
+        do {
+            const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
+            url.searchParams.append("q", query);
+            if (nextPageToken) {
+              url.searchParams.append("pageToken", nextPageToken);
+            }
+            const response = await fetch(url.toString(), {
+              method: 'GET',
+              headers: {
+              Authorization: `${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+            });
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
+            }
+            const data = await response.json();
+            const ids = (data.messages || []).map(msg => msg.id);
+            allMessages.push(...ids);
+            nextPageToken = data.nextPageToken;
+        } while (nextPageToken);
+
+          const emailTotalCount = allMessages.length;
+          const cacheKey = `emails_${email}_${senders.join('_')}_${startDate}_${endDate}_${filter}`;
+          await setCache(cacheKey, allMessages, 3600000);
+          return { cacheKey, emailTotalCount };
+        } catch (error) {
+        console.error('Error fetching emails by sender with date range:', error);
+        return [];
+        }   
+      }
+
+
+    async getEmailsBySender(email, senders, filter, accessToken) {
+      let nextPageToken = null;
+      const allMessages = [];
+      try {
+      let query = Array.isArray(senders) && senders.length > 1 
+        ? senders.map(sender => `from:${sender}`).join(' OR ') 
+        : `from:${senders[0]}`;
+
+      if (filter === 'unread') {
+        query += ' is:unread';
+      } else if (filter === 'read') {
+        query += ' -is:unread';
+      }
+
+      console.log('Query in getEmailBySender:', query);
+
+      if (query.length > 2048) {
+        throw new Error('Query string exceeds the maximum allowed length of 2048 characters.');
+      }
+
+      do {
+        const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
+        url.searchParams.append("q", query);
+        if (nextPageToken) {
+          url.searchParams.append("pageToken", nextPageToken);
+        }
+        const response = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            Authorization: `${accessToken}`,
+            'Content-Type': 'application/json'
+        }
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
+        }
+        const data = await response.json();
+        const ids = (data.messages || []).map(msg => msg.id);
+        allMessages.push(...ids);
+        nextPageToken = data.nextPageToken;
+
+      } while (nextPageToken);
+
+        const emailTotalCount = allMessages.length;
+        const cacheKey = `emails_${email}_${senders.join('_')}`;
+        await setCache(cacheKey, allMessages, 3600000);
+        console.log('Fetched emails by sender:', emailTotalCount);
+        return { emailTotalCount, cacheKey };
+      } catch (error) {
+        console.error('Error fetching emails by sender:', error);
+        return [];
+      }
+    }
+
 
       async batchDeleteEmails(email, accessToken, cacheKey) {
         try {
@@ -204,7 +317,7 @@ export default class GmailService {
             const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages/batchDelete`, {
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${accessToken}`,
+                    Authorization: `${accessToken}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ ids: cachedData })
@@ -220,6 +333,5 @@ export default class GmailService {
             return { success: false, message: error.message };
         }
     }
-    
 
 }
