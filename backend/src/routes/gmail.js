@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getEmails, getEmailsByYear, getEmailsByDateRange, getEmailsBySender} from '../controllers/gmailController.js'
+import { getEmails, getEmailsByYear, getEmailsByDateRange, getEmailsBySender, getLabels, getEmailsByLabel} from '../controllers/gmailController.js'
 
 const router = Router()
 router.get('/email', (req, res, next) => {
@@ -15,10 +15,19 @@ router.get('/email/sender', (req, res, next) => {
     getEmailsBySender(req, res, next);
 });
 
+router.get('/email/labels', (req, res, next) => {
+    console.log('GET /gmail/email/labels endpoint hit');
+    getLabels(req, res, next);
+});
+
+router.get('/email/by-labels', (req, res, next) => {
+    console.log('GET /gmail/email/by-labels endpoint hit');
+    getEmailsByLabel(req, res, next);
+});
+
 router.delete('/email/delete', (req, res, next) => {
     console.log('DELETE /gmail/email/delete endpoint hit');
     // Implement delete functionality here if needed
-    res.status(501).json({ success: false, message: 'Not Implemented' });
 });
 
 router.get('/email/:year', (req, res, next) => {

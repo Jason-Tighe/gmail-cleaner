@@ -5,6 +5,7 @@ import SenderInput from "./SenderInput";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import qs from "qs";
+import Dropdown from "./DropDown";
 
 type EmailResponse = {
     emailTotalCount: number;
@@ -107,17 +108,33 @@ export default function BySender() {
 
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
-            {/* Date Range Toggle */}
-            <div className="flex items-center space-x-4">
-                <label className="text-m font-medium text-gray-700">Filter by Date:</label>
-                <select
+            {/* Date Range Toggle and Read/Unread Filter */}
+            <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
+                <Dropdown
+                    label="Filter by Date:"
                     value={dateRangeEnabled ? "range" : "all"}
-                    onChange={(e) => setDateRangeEnabled(e.target.value === "range")}
-                    className="border border-gray-300 rounded px-2 py-1"
-                >
-                    <option value="all">All Time</option>
-                    <option value="range">Date Range</option>
-                </select>
+                    onChange={(val) => setDateRangeEnabled(val === "range")}
+                    options={[
+                        { label: "All Time", value: "all" },
+                        { label: "Date Range", value: "range" },
+                    ]}
+                />
+                <div className="flex items-center space-x-4">
+                    <label className="block text-m text-gray-700 font-bold">Email Status:</label>
+                    <div className="flex space-x-4">
+                        {["all", "read", "unread"].map((option) => (
+                            <label key={option} className="flex items-center space-x-2">
+                                <input
+                                    type="radio"
+                                    value={option}
+                                    checked={filter === option}
+                                    onChange={() => setFilter(option as any)}
+                                />
+                                <span className="capitalize">{option}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Date Pickers */}
@@ -134,24 +151,6 @@ export default function BySender() {
                     onChange={setEndDate}
                     disabled={!dateRangeEnabled}
                 />
-            </div>
-
-            {/* Read/Unread Filter */}
-            <div className="flex flex-col items-center">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Status</label>
-                <div className="flex space-x-4">
-                    {["all", "read", "unread"].map((option) => (
-                        <label key={option} className="flex items-center space-x-2">
-                            <input
-                                type="radio"
-                                value={option}
-                                checked={filter === option}
-                                onChange={() => setFilter(option as any)}
-                            />
-                            <span className="capitalize">{option}</span>
-                        </label>
-                    ))}
-                </div>
             </div>
 
             {/* Sender Inputs Section */}

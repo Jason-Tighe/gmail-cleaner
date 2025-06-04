@@ -7,7 +7,7 @@ import Login from './pages/Login.tsx'
 import ProtectedRoute from './pages/ProtectedRoute.tsx'
 import Sender from './pages/Sender.tsx'
 import YearPage from './pages/YearPage.tsx'
-import InboxNav from './components/InboxNav.tsx'
+import LabelPage from './pages/LabelPage.tsx'
 
 export default function App() {
   return (
@@ -19,7 +19,6 @@ export default function App() {
             path="/inbox" 
             element={
               <ProtectedRoute>
-                <InboxNav />
                 <InboxLayout /> 
               </ProtectedRoute>
             }
@@ -28,6 +27,7 @@ export default function App() {
             <Route path="by-date" element={<YearPage />} />
             <Route path="date-range" element={<DateRangeDetail />} />      
             <Route path="by-sender" element={<Sender />} />
+            <Route path="by-label" element={<LabelPage />} />
             <Route path="search" element={<GeneralEmail />} />
           </Route>
         </Routes>

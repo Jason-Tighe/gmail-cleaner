@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/Auth";
+// import { useAuth } from "../hooks/Auth";
 
 export default function InboxDashboard() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
     
     // I think this page should present the user with several options:
     // 1. Search for emails generic search
@@ -32,12 +32,11 @@ export default function InboxDashboard() {
         colorClass: 'bg-purple-50 hover:bg-purple-100',
         action: () => navigate('/inbox/search')
       },
-      {
-        icon: '👋',
-        title: 'Log Out',
-        description: 'Sign out safely',
-        colorClass: 'bg-red-50 hover:bg-red-100',
-        action: () => { logout(); navigate('/');}
+      { icon: '🏷️',
+        title: 'By Label',
+        description: 'Organize emails by labels',
+        colorClass: 'bg-yellow-50 hover:bg-yellow-100',
+        action: () => navigate('/inbox/by-label')
       }
     ]
 

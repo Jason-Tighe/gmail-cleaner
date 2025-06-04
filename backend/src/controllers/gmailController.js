@@ -78,8 +78,10 @@ export const getEmailsBySender = async (req, res) => {
 export const getLabels = async (req, res) => {
     try {
         console.log('Fetching labels for user:', req.query);
-        const { emailAddress, accessToken } = req.query;
+        const { emailAddress } = req.query;
+        const accessToken = req.headers.authorization;
         const labels = await gmailService.getLabels(emailAddress, accessToken);
+        console.log('Labels fetched:', labels);
         res.status(200).json(labels);
     } catch (error) {
         console.error('Error fetching labels:', error);
@@ -90,8 +92,9 @@ export const getLabels = async (req, res) => {
 // Get Emails by Label
 export const getEmailsByLabel = async (req, res) => {
     try {
-        const { email, label, accessToken } = req.query;
-        const { emailTotalCount, cacheKey} = await gmailService.getEmailsByLabel(email, label, accessToken);
+        const { email, labels, filter, startDate, endDate } = req.query;
+        const accessToken = req.headers.authorization;
+        const { emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabels(email, labels, filter, startDate, endDate, accessToken);
         res.status(200).json(emailDetails);
     } catch (error) {
         console.error('Error fetching emails by label:', error);
