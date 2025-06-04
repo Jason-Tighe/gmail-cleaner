@@ -92,10 +92,21 @@ export const getLabels = async (req, res) => {
 // Get Emails by Label
 export const getEmailsByLabel = async (req, res) => {
     try {
-        const { email, labels, filter, startDate, endDate } = req.query;
+        const { email, filter, startDate, endDate } = req.query;
+        let labels = req.query.labelIds;
+        console.log('headers:', req.headers);
+        console.log('Query parameters:', req.query);
         const accessToken = req.headers.authorization;
-        const { emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabels(email, labels, filter, startDate, endDate, accessToken);
-        res.status(200).json(emailDetails);
+        let emailTotalCount, cacheKey;
+        if (!Array.isArray(labels)) {
+            labels = [labels];
+        }
+        if(startDate === '' && endDate === '') {
+            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabels(email, labels, filter, accessToken));
+        } else {
+            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabelsWDateRange(email, labels, filter, startDate, endDate, accessToken));
+        }
+        res.status(200).json({ emailTotalCount, cacheKey} );
     } catch (error) {
         console.error('Error fetching emails by label:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });

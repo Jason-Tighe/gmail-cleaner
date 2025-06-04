@@ -341,8 +341,9 @@ export default class GmailService {
       }
     }
 
-      async fetchEmailsByLabels(email, labels, filter, startDate, endDate, accessToken) {
+      async fetchEmailsByLabelsWDateRange(email, labels, filter, startDate, endDate, accessToken) {
         try{
+             console.log('labels:', labels);
             let nextPageToken = null;
             const allMessages = [];
             let query = `after:${startDate} before:${endDate}`;
@@ -354,11 +355,16 @@ export default class GmailService {
             }
 
 
-            console.log('Query in fetchEmailsByLabels:', query);
+            console.log('Query in fetchEmailsByLabelsWDateRange:', query);
 
             do {
                 const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
                 url.searchParams.append("q", query);
+
+                labels.forEach(labelId => {
+                  url.searchParams.append("labelIds", labelId);
+                });
+
                 if (nextPageToken) {
                     url.searchParams.append("pageToken", nextPageToken);
                 }
@@ -388,12 +394,70 @@ export default class GmailService {
             await setCache(cacheKey, allMessages, 3600000);
 
             console.log('Fetched emails by label:', allMessages.length);
-            return allMessages;
+            return { emailTotalCount, cacheKey };
         } catch (error) {
             console.error('Error fetching emails by label:', error);
             return [];
         }
       }
+
+      async fetchEmailsByLabels(email, labels, filter, accessToken) {
+        try{
+          let nextPageToken = null;
+          const allMessages = [];
+          let query = '';
+
+          if (filter === 'unread') {
+              query += ' is:unread';
+          } else if (filter === 'read') {
+              query += ' -is:unread';
+          }
+
+          console.log('Query in fetchEmailsByLabels:', query);
+
+          do {
+              const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
+              url.searchParams.append("q", query);
+
+              labels.forEach(labelId => {
+                url.searchParams.append("labelIds", labelId);
+              });
+
+              if (nextPageToken) {
+                  url.searchParams.append("pageToken", nextPageToken);
+              }
+
+              const response = await fetch(url.toString(), {
+                  method: 'GET',
+                  headers: {
+                      Authorization: `${accessToken}`,
+                      'Content-Type': 'application/json'
+                  }
+              });
+
+              if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
+              }
+
+              const data = await response.json();
+              const ids = (data.messages || []).map(msg => msg.id);
+              allMessages.push(...ids);
+              nextPageToken = data.nextPageToken;
+
+          } while (nextPageToken);
+
+          const emailTotalCount = allMessages.length;
+          const cacheKey = `emails_${email}_${labels.join('_')}_${filter}`;
+          await setCache(cacheKey, allMessages, 3600000);
+
+          console.log('Fetched emails by label:', allMessages.length);
+          return { emailTotalCount, cacheKey };
+      } catch (error) {
+          console.error('Error fetching emails by label:', error);
+          return [];
+      }
+    }
 
 
       async batchDeleteEmails(email, accessToken, cacheKey) {
