@@ -3,9 +3,9 @@ import { useAuth } from "../hooks/Auth";
 
 const navItems = [
   { path: '/inbox', label: 'Dashboard', icon: '🏠' },
+  { path: '/inbox/search', label: 'Search', icon: '🔍' },
   { path: '/inbox/by-date', label: 'By Date', icon: '📅' },
   { path: '/inbox/by-sender', label: 'By Sender', icon: '👤' },
-  { path: '/inbox/search', label: 'Search', icon: '🔍' },
   { path: '/inbox/by-label', label: 'By Label', icon: '🏷️' },
   { path: '/logout', label: 'Logout', icon: '🚪' },
 ];

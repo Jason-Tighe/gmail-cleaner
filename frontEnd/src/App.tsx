@@ -1,7 +1,7 @@
 import DateRangeDetail from './pages/DateRange.tsx'
 import { Route, Routes } from 'react-router-dom'
 import InboxLayout from './layouts/IndexLayout.tsx'
-import GeneralEmail from './pages/GeneralEmail.tsx'
+import AdvancedEmail from './pages/AdvancedEmail.tsx'
 import InboxDashboard from './pages/InboxDashboard.tsx'
 import Login from './pages/Login.tsx'
 import ProtectedRoute from './pages/ProtectedRoute.tsx'
@@ -28,7 +28,7 @@ export default function App() {
             <Route path="date-range" element={<DateRangeDetail />} />      
             <Route path="by-sender" element={<Sender />} />
             <Route path="by-label" element={<LabelPage />} />
-            <Route path="search" element={<GeneralEmail />} />
+            <Route path="search" element={<AdvancedEmail />} />
           </Route>
         </Routes>
       </main>

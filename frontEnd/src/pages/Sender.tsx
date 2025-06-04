@@ -2,12 +2,11 @@ import BySender from '../components/BySender';
 
 export default function Sender() {
   return (
-    <div className="flex flex-col h-full items-center justify-center">
-        <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">Sender Page</h2>
-        </div>
-        <BySender />
-        
+    <div className="flex flex-col py-22 items-center justify-center px-4">
+      <div className="text-center mb-12 max-w-2xl">
+        <h1 className="text-4xl font-bold text-gray-900">Sender Page</h1>
+      </div>
+      <BySender /> 
     </div>
   );
 }

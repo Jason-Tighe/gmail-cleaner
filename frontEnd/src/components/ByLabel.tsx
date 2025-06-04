@@ -106,7 +106,6 @@ export default function ByLabel() {
 
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
-            <h2 className="text-3xl font-bold text-gray-800">Filter by Labels</h2>
 
             {/* Label Selection */}
             <div>
