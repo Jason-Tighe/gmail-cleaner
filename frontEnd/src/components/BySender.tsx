@@ -107,7 +107,7 @@ export default function BySender() {
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
                 <Dropdown
-                    label="Filter by Date:"
+                    label="Filter by Date: "
                     value={dateRangeEnabled ? "range" : "all"}
                     onChange={(val) => setDateRangeEnabled(val === "range")}
                     options={[
