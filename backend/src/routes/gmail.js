@@ -3,7 +3,7 @@ import { getEmails, getEmailsByYear, getEmailsByDateRange, getEmailsBySender, ge
 import { batch } from 'googleapis/build/src/apis/batch/index.js';
 
 const router = Router()
-router.get('/email', (req, res, next) => {
+router.get('/email/advanced', (req, res, next) => {
     getEmails(req, res, next);
 });
 

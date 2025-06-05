@@ -1,18 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import axios from "axios";
 import DatePicker from "./DatePicker";
 import Dropdown from "./DropDown";
+import Delete from "./Delete";
+import { useAuth } from "../context/AuthContext";
+import RangeFilter from "./RangeFitler";
+
+type EmailResponse = {
+  emailTotalCount: number;
+  cacheKey: string;
+};
+
+type GmailLabel = {
+  id: string;
+  name: string;
+};
 
 export default function ByAdvancedFilters() {
+  const { user } = useAuth();
+  const [labels, setLabels] = useState<GmailLabel[]>([]);
   const [dateRangeEnabled, setDateRangeEnabled] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [filter, setFilter] = useState<"all" | "read" | "unread">("all");
   const [hasAttachment, setHasAttachment] = useState(false);
-  const [largerThan, setLargerThan] = useState(500000);
   const [from, setFrom] = useState("");
   const [subject, setSubject] = useState("");
-  const [label, setLabel] = useState("");
+  const [label, setLabel] = useState<string[]>([]);
+  const [emailCount, setEmailCount] = useState<number | null>(null);
+  const [cacheKey, setCacheKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sizeRange, setSizeRange] = useState<[number, number]>([50000, 500000]);
+  const hasFetched = useRef(false);
 
   const formatBytes = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -20,6 +41,63 @@ export default function ByAdvancedFilters() {
     const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  };
+
+  useEffect(() => {
+    if (hasFetched.current) return;
+    if (!user?.email || !user?.accessToken) return;
+
+    hasFetched.current = true;
+
+    const fetchLabels = async () => {
+      setError(null);
+      try {
+        const response = await axios.get<GmailLabel[]>("/api/gmail/email/labels", {
+          headers: {
+            Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
+          },
+          params: { email: user?.email },
+        });
+        console.log("Labels fetched:", response.data);
+        setLabels(response.data);
+      } catch (error) {
+        setError("Failed to fetch email count.");
+        console.error("Error fetching labels:", error);
+      }
+    };
+
+    fetchLabels();
+  }, [user?.email, user?.accessToken]);
+
+  const loadEmails = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get<EmailResponse>("/api/gmail/email/advanced", {
+        headers: {
+          Authorization: `Bearer ${user?.accessToken ?? localStorage.getItem("accessToken")}`,
+        },
+        params: {
+          email: user?.email ?? localStorage.getItem("email"),
+          startDate: dateRangeEnabled ? startDate : undefined,
+          endDate: dateRangeEnabled ? endDate : undefined,
+          filter,
+          hasAttachment,
+          smallerThan: formatBytes(sizeRange[0]),
+          largerThan: formatBytes(sizeRange[1]),
+          from,
+          subject,
+          label: label.join(","),
+        },
+      });
+
+      setCacheKey(response.data.cacheKey);
+      setEmailCount(response.data.emailTotalCount);
+    } catch {
+      setError("Failed to load email count.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,22 +131,26 @@ export default function ByAdvancedFilters() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DatePicker
-          label="Start Date"
+          label="Start Date:"
           date={startDate}
           onChange={setStartDate}
           disabled={!dateRangeEnabled}
+          textSize="text-sm"
+          labelPosition="inline"
         />
         <DatePicker
-          label="End Date"
+          label="End Date:"
           date={endDate}
           onChange={setEndDate}
           disabled={!dateRangeEnabled}
+          textSize="text-sm"
+          labelPosition="inline"
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="from" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="from" className="block text-sm font-medium text-gray-700 mb-1">
             From
           </label>
           <input
@@ -76,30 +158,13 @@ export default function ByAdvancedFilters() {
             id="from"
             value={from}
             onChange={(e) => setFrom(e.target.value)}
-            placeholder="e.g., tighe59@gmail.com"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="e.g., example@gmail.com"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
 
         <div>
-          <label htmlFor="label" className="block text-sm font-medium text-gray-700">
-            Label
-          </label>
-          <select
-            id="label"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          >
-            <option value="">Select Label</option>
-            <option value="STARRED">STARRED</option>
-            <option value="IMPORTANT">IMPORTANT</option>
-            <option value="SPAM">SPAM</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
             Subject
           </label>
           <input
@@ -107,59 +172,74 @@ export default function ByAdvancedFilters() {
             id="subject"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder="e.g., meeting"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            placeholder="e.g., Weekly Report"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
+      </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex-1">
-            <label htmlFor="larger" className="block text-sm font-medium text-gray-700">
-              Larger Than
-            </label>
-            <input
-              type="range"
-              id="larger"
-              min="0"
-              max="1000000"
-              step="10000"
-              value={largerThan}
-              onChange={(e) => setLargerThan(Number(e.target.value))}
-              className="mt-1 w-full"
-            />
-            <div className="text-sm text-gray-500 mt-1">
-              Selected: {largerThan.toLocaleString()} bytes ({formatBytes(largerThan)})
-            </div>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="hasAttachment"
-              checked={hasAttachment}
-              onChange={(e) => setHasAttachment(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="hasAttachment" className="text-sm font-medium text-gray-700">
-              Has Attachment
-            </label>
-          </div>
+      <div>
+        <Dropdown
+          label="Label:"
+          value={label}
+          onChange={(val) => {
+            if (typeof val === "string") {
+              setLabel([val]);
+            } else {
+              setLabel(val);
+            }
+          }}
+          options={labels.map((lbl) => ({
+            label: lbl.name,
+            value: lbl.id,
+          }))}
+          inputType="multiple"
+        />
+      </div>
+
+      <div className="flex items-center space-x-4">
+        <RangeFilter values={sizeRange} setValues={setSizeRange} />
+
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="hasAttachment"
+            checked={hasAttachment}
+            onChange={(e) => setHasAttachment(e.target.checked)}
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <label htmlFor="hasAttachment" className="text-sm font-medium text-gray-700">
+            Has Attachment
+          </label>
         </div>
       </div>
 
       <div className="pt-4 border-t border-gray-200 flex space-x-4">
         <button
-          onClick={() => alert("Load logic to be implemented")}
+          onClick={loadEmails}
           className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          Load Emails
+          {loading ? "Loading..." : "Load Emails"}
         </button>
-        <button
-          onClick={() => alert("Delete logic to be implemented")}
-          className="flex-1 py-3 bg-red-600 text-white rounded-md text-center text-lg font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-        >
-          Delete Emails
-        </button>
+        <Delete
+          cacheKey={cacheKey}
+          disabled={!cacheKey || emailCount === 0 || loading}
+          onSuccess={() => {
+            alert("Emails deleted successfully.");
+            setEmailCount(0);
+            setCacheKey(null);
+          }}
+          onError={(err) => setError(err)}
+          label="Delete Emails"
+        />
       </div>
+
+      {emailCount !== null && (
+        <p className="text-center text-gray-700 mt-2">
+          Emails matching filters: <span className="font-semibold">{emailCount}</span>
+        </p>
+      )}
+      {error && <p className="text-center text-red-500 mt-2">{error}</p>}
     </div>
   );
 }
