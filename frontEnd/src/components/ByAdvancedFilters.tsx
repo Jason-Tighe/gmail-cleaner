@@ -24,7 +24,6 @@ export default function ByAdvancedFilters() {
 
   return (
     <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
-      {/* Top Filters */}
       <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
         <Dropdown
           label="Filter by Date:"
@@ -52,7 +51,6 @@ export default function ByAdvancedFilters() {
         </div>
       </div>
 
-      {/* Date Pickers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DatePicker
           label="Start Date"
@@ -68,7 +66,6 @@ export default function ByAdvancedFilters() {
         />
       </div>
 
-      {/* Other Fields */}
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label htmlFor="from" className="block text-sm font-medium text-gray-700">
@@ -149,7 +146,6 @@ export default function ByAdvancedFilters() {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="pt-4 border-t border-gray-200 flex space-x-4">
         <button
           onClick={() => alert("Load logic to be implemented")}

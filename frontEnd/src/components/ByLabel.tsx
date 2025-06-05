@@ -98,7 +98,6 @@ export default function ByLabel() {
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
 
-            {/* Label Selection */}
             <div>
             <Label
                 labels={labels}
@@ -107,7 +106,6 @@ export default function ByLabel() {
             />
             </div>
 
-            {/* Date Filter & Status */}
             <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
             <Dropdown
                 label="Filter by Date:"
@@ -137,7 +135,6 @@ export default function ByLabel() {
             </div>
             </div>
 
-            {/* Date Pickers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DatePicker
                 label="Start Date"
@@ -157,7 +154,6 @@ export default function ByLabel() {
             />
             </div>
 
-            {/* Action Buttons */}
             <div className="pt-4 border-t border-gray-200 flex space-x-4">
             <button
                 onClick={handleFetchEmails}

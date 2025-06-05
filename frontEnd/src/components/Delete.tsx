@@ -65,21 +65,25 @@ export default function Delete({
         }
     };
 
+    const isIcon = label === "icon";
+
     const buttonText = deleting
-    ? "Deleting..."
-    : success
+        ? "Deleting..."
+        : success
         ? "Deleted ✓"
         : emailCount
         ? `Delete (${emailCount})`
+        : isIcon
+        ? <i className="fas fa-trash-alt" />
         : label || "Delete";
 
-    const buttonClass = `flex-1 py-3 rounded-md text-center text-lg font-semibold focus:outline-none focus:ring-2 ${
-    success
-        ? "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
-        : !disabled
-        ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-        : "bg-gray-400 text-gray-200 cursor-not-allowed"
-    }`;
+        const buttonClass = `flex-1 py-3 rounded-md text-center text-lg font-semibold focus:outline-none focus:ring-2 ${
+            success
+              ? "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500"
+              : !disabled
+              ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
+              : "bg-gray-400 text-gray-200 cursor-not-allowed"
+          }`;
 
     return (
         <>
@@ -87,6 +91,7 @@ export default function Delete({
             onClick={() => setShowModal(true)}
             className={buttonClass}
             disabled={disabled || deleting}
+            title={isIcon ? "Delete" : undefined}
             >
             {buttonText}
             </button>

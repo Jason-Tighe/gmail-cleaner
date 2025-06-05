@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import qs from "qs";
 import Dropdown from "./DropDown";
+import Delete from "./Delete";
 
 type EmailResponse = {
     emailTotalCount: number;
@@ -101,14 +102,9 @@ export default function BySender() {
         }
     };
 
-    const handleDeleteEmails = () => {
-        if (!cacheKey) return;
-        alert(`Deleted ${emailTotalCount} emails with key ${cacheKey}`);
-    };
 
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
-            {/* Date Range Toggle and Read/Unread Filter */}
             <div className="flex flex-col md:flex-row md:items-center md:space-x-6">
                 <Dropdown
                     label="Filter by Date:"
@@ -137,7 +133,6 @@ export default function BySender() {
                 </div>
             </div>
 
-            {/* Date Pickers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <DatePicker
                     label="Start Date"
@@ -153,7 +148,6 @@ export default function BySender() {
                 />
             </div>
 
-            {/* Sender Inputs Section */}
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Senders</label>
                 <div className="max-h-56 overflow-y-auto pr-2">
@@ -184,7 +178,6 @@ export default function BySender() {
                 </button>
             </div>
 
-            {/* Load/Delete Buttons */}
             <div className="pt-4 border-t border-gray-200 flex space-x-4">
                 <button
                     onClick={handleLoadEmails}
@@ -192,17 +185,16 @@ export default function BySender() {
                 >
                     Load Emails
                 </button>
-                <button
-                    onClick={handleDeleteEmails}
+                <Delete
+                    cacheKey={cacheKey}
+                    emailCount={emailTotalCount}
                     disabled={emailTotalCount === null}
-                    className={`flex-1 py-3 rounded-md text-center text-lg font-semibold focus:outline-none focus:ring-2 ${
-                        emailTotalCount === null
-                            ? "bg-gray-400 text-gray-700 cursor-not-allowed"
-                            : "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-                    }`}
-                >
-                    Delete All Emails ({emailTotalCount ?? 0})
-                </button>
+                    onSuccess={() => {
+                        setemailTotalCount(null);
+                        setCacheKey(null);
+                    }}
+                    onError={(err) => alert(err)}
+                />
             </div>
         </div>
     );
