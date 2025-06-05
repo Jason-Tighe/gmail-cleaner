@@ -47,9 +47,9 @@ export default function GoogleSignInButton() {
     return (
       <button 
       onClick={() => login()}
-      className="w-full max-w-xs bg-slate-100 text-slate-900 px-8 py-6 rounded-2xl shadow-md hover:bg-slate-200 hover:shadow-xl hover:scale-[1.02] transition-all duration-200 ease-in-out text-lg font-medium flex items-center justify-center space-x-3"
+      className="w-full max-w-xs bg-white text-slate-900 px-8 py-6 rounded-2xl shadow-md hover:bg-slate-200 hover:shadow-xl hover:scale-[1.02] transition-all duration-200 ease-in-out text-lg font-medium flex items-center justify-center space-x-3"
     >
-      <i className="fab fa-google text-xl text-red-600"></i>
+      <i className="fab fa-google text-xl text-amber-600"></i>
       <span>Sign in with Google</span>
     </button>
     );
