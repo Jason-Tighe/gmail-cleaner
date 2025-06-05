@@ -14,7 +14,7 @@ export default function GoogleSignInButton() {
     const navigate = useNavigate();
   
     const login = useGoogleLogin({
-      scope: 'https://www.googleapis.com/auth/gmail.readonly',
+      scope: 'https://mail.google.com/',
       onSuccess: async (tokenResponse) => {
         try {
           const res = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {

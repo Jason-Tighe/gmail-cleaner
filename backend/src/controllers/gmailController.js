@@ -116,9 +116,9 @@ export const getEmailsByLabel = async (req, res) => {
 // Batch Delete Emails (Just needs an array of email IDs)
 export const batchDeleteEmails = async (req, res) => {
     try {
-        console.log('Batch deleting emails for user:', req.query);
-        const { emailAddress, accessToken, cacheKey } = req.query;
-        const response = await gmailService.batchDeleteEmails(emailAddress, accessToken, cacheKey);
+        const { email, cacheKey } = req.query;
+        const accessToken = req.headers.authorization;
+        const response = await gmailService.batchDeleteEmails(email, accessToken, cacheKey);
         res.status(200).json(response);
     } catch (error) {
         console.error('Error batch deleting emails:', error);

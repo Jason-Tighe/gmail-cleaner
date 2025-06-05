@@ -5,6 +5,7 @@ import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 import Dropdown from "./DropDown";
 import qs from "qs";
+import Delete from "./Delete";
 
 type GmailLabel = {
     id: string;
@@ -28,6 +29,10 @@ export default function ByLabel() {
     const { user } = useAuth();
     const hasFetched = useRef(false);
     const accessToken = user?.accessToken || localStorage.getItem("accessToken");
+    const [cacheKey, setCacheKey] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+
 
     useEffect(() => {
         if (hasFetched.current) return;
@@ -36,6 +41,7 @@ export default function ByLabel() {
         hasFetched.current = true;
 
         const fetchLabels = async () => {
+            setError(null);
             try {
                 const response = await axios.get<GmailLabel[]>("/api/gmail/email/labels", {
                     headers: {
@@ -46,6 +52,7 @@ export default function ByLabel() {
                 console.log("Labels fetched:", response.data);
                 setLabels(response.data);
             } catch (error) {
+                setError("Failed to fetch email count.");
                 console.error("Error fetching labels:", error);
             }
         };
@@ -69,7 +76,8 @@ export default function ByLabel() {
                 },
             });
             setEmailCount(response.data.emailTotalCount);
-            setDeleteEnabled(true); // Enable the delete button
+            setCacheKey(response.data.cacheKey);
+            setDeleteEnabled(true); 
         } catch (error) {
             console.error("Error fetching emails by labels:", error);
         }
@@ -82,27 +90,10 @@ export default function ByLabel() {
         setEndDate("");
         setDateRangeEnabled(false);
         setEmailFilter("all");
-        setDeleteEnabled(false); // Disable the delete button
+        setDeleteEnabled(false);
+        setError(null);
     };
 
-    const handleDeleteAll = async () => {
-        try {
-            await axios.delete("/api/gmail/email/delete-all", {
-                headers: { Authorization: `Bearer ${accessToken}` },
-                params: {
-                    email: user?.email ?? localStorage.getItem("email"),
-                    labelIds: selectedLabelIds,
-                },
-                paramsSerializer: (params) => {
-                    return qs.stringify(params, { arrayFormat: "repeat" });
-                },
-            });
-            console.log("Emails deleted successfully");
-            handleClearSelection(); // Clear selection after deletion
-        } catch (error) {
-            console.error("Error deleting emails:", error);
-        }
-    };
 
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
@@ -181,20 +172,22 @@ export default function ByLabel() {
             >
                 Clear Selection
             </button>
-            <button
-                onClick={handleDeleteAll}
-                className={`flex-1 py-3 rounded-md text-center text-lg font-semibold focus:outline-none focus:ring-2 ${
-                deleteEnabled
-                    ? "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500"
-                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
-                }`}
+            <Delete
+                cacheKey={cacheKey}
+                emailCount={emailCount}
                 disabled={!deleteEnabled}
-            >
-                {deleteEnabled && emailCount !== null
-                ? `Delete (${emailCount})`
-                : "Delete All"}
-            </button>
+                onSuccess={() => {
+                    setEmailCount(0);
+                }}
+                onError={(msg) => setError(msg)}
+            />
+
             </div>
+            {error && (
+            <div className="text-red-600 bg-red-100 p-3 rounded border border-red-400">
+                {error}
+            </div>
+            )}
         </div>
     );
 }

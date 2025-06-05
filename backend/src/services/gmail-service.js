@@ -462,7 +462,9 @@ export default class GmailService {
 
       async batchDeleteEmails(email, accessToken, cacheKey) {
         try {
+            console.log('Batch deleting emails for user:', email);
             const cachedData = await getCache(cacheKey);
+            console.log('Cached data for batch delete:', cachedData);
             const response = await fetch(`${this.baseUrl}/gmail/v1/users/me/messages/batchDelete`, {
                 method: 'POST',
                 headers: {
@@ -471,11 +473,11 @@ export default class GmailService {
                 },
                 body: JSON.stringify({ ids: cachedData })
             });
-    
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json();
+                throw new Error(`Gmail API Error: ${JSON.stringify(errorData)}`);
             }
-    
+           
             return { success: true };
         } catch (error) {
             console.error('Error deleting emails:', error);

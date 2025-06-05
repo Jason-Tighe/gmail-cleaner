@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { getEmails, getEmailsByYear, getEmailsByDateRange, getEmailsBySender, getLabels, getEmailsByLabel} from '../controllers/gmailController.js'
+import { getEmails, getEmailsByYear, getEmailsByDateRange, getEmailsBySender, getLabels, getEmailsByLabel, batchDeleteEmails} from '../controllers/gmailController.js'
+import { batch } from 'googleapis/build/src/apis/batch/index.js';
 
 const router = Router()
 router.get('/email', (req, res, next) => {
@@ -27,7 +28,7 @@ router.get('/email/by-labels', (req, res, next) => {
 
 router.delete('/email/delete', (req, res, next) => {
     console.log('DELETE /gmail/email/delete endpoint hit');
-    // Implement delete functionality here if needed
+    batchDeleteEmails(req, res, next);
 });
 
 router.get('/email/:year', (req, res, next) => {
