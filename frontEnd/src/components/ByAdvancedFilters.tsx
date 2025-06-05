@@ -159,7 +159,7 @@ export default function ByAdvancedFilters() {
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             placeholder="e.g., example@gmail.com"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
           />
         </div>
 
@@ -173,7 +173,7 @@ export default function ByAdvancedFilters() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="e.g., Weekly Report"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
           />
         </div>
       </div>
@@ -206,7 +206,7 @@ export default function ByAdvancedFilters() {
             id="hasAttachment"
             checked={hasAttachment}
             onChange={(e) => setHasAttachment(e.target.checked)}
-            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            className="h-4 w-4 text-blue-600 border-gray-300 rounded "
           />
           <label htmlFor="hasAttachment" className="text-sm font-medium text-gray-700">
             Has Attachment
@@ -217,7 +217,7 @@ export default function ByAdvancedFilters() {
       <div className="pt-4 border-t border-gray-200 flex space-x-4">
         <button
           onClick={loadEmails}
-          className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700"
         >
           {loading ? "Loading..." : "Load Emails"}
         </button>

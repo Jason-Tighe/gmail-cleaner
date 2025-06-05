@@ -161,7 +161,7 @@ export default function BySender() {
                             <button
                                 type="button"
                                 onClick={() => removeSenderInput(index)}
-                                className="h-[42px] px-3 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                className="h-[42px] px-3 bg-red-500 text-white rounded-md hover:bg-red-600"
                             >
                                 <i className="fas fa-trash-alt"></i>
                                 <span className="sr-only">Delete Sender</span>
@@ -181,7 +181,7 @@ export default function BySender() {
             <div className="pt-4 border-t border-gray-200 flex space-x-4">
                 <button
                     onClick={handleLoadEmails}
-                    className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700"
                 >
                     Load Emails
                 </button>

@@ -74,7 +74,6 @@ type DropdownOption = {
           onChange={(e) => onChange(e.target.value)}
           className={`
             bg-white text-gray-800 border border-gray-300 rounded px-2 py-1 text-sm shadow-sm
-            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
             appearance-none
             ${selectClassName}
           `}

@@ -31,7 +31,7 @@ export default function Label({ labels, selected, onSelect }: LabelProps) {
                         <button
                             key={id}
                             onClick={() => toggleLabel(id)}
-                            className={`transition-all duration-200 text-xs font-medium px-3 py-1 rounded-full shadow-sm border focus:outline-none
+                            className={`transition-all duration-200 text-xs font-medium px-3 py-1 rounded-full shadow-sm border
                             ${
                                 isSelected
                                     ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'

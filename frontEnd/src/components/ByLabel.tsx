@@ -157,14 +157,14 @@ export default function ByLabel() {
             <div className="pt-4 border-t border-gray-200 flex space-x-4">
             <button
                 onClick={handleFetchEmails}
-                className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 py-3 bg-blue-600 text-white rounded-md text-center text-lg font-semibold hover:bg-blue-700"
                 disabled={selectedLabelIds.length === 0}
             >
                 Load Emails
             </button>
             <button
                 onClick={handleClearSelection}
-                className="flex-1 py-3 bg-gray-600 text-white rounded-md text-center text-lg font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 py-3 bg-amber-600 text-white rounded-md text-center text-lg font-semibold hover:bg-amber-700"
             >
                 Clear Selection
             </button>

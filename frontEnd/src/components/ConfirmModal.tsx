@@ -43,18 +43,18 @@ export default function ConfirmModal({ onConfirm, onCancel }: ConfirmModalProps)
                     value={inputValue}
                     ref={inputRef}
                     onChange={(e) => setInputValue(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full p-2 border border-gray-300 rounded mb-4"
                 />
                 <div className="mt-auto flex justify-between">
                     <button
                         onClick={handleConfirm}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 w-1/2 mr-2"
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600  w-1/2 mr-2"
                     >
                         Confirm
                     </button>
                     <button
                         onClick={onCancel}
-                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 w-1/2 ml-2"
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600  w-1/2 ml-2"
                     >
                         Cancel
                     </button>
