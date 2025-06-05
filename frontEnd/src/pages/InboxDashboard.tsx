@@ -12,27 +12,27 @@ export default function InboxDashboard() {
 
     const actionButtons = [
       {
-        icon: '📅',
+        icon: <i className="fas fa-calendar text-5xl mb-4"/>,
         title: 'By Date',
         description: 'Clean old emails',
         colorClass: 'bg-blue-50 hover:bg-blue-100',
         action: () => navigate('/inbox/by-date')
       },
       {
-        icon: '📧',
+        icon: <i className="fas fa-user text-5xl mb-4"/>,
         title: 'By Sender',
         description: 'Block newsletters',
         colorClass: 'bg-green-50 hover:bg-green-100',
         action: () => navigate('/inbox/by-sender')
       },
       {
-        icon: '🔍',
+        icon: <i className="fas fa-search text-5xl mb-4"/>,
         title: 'Custom Search',
         description: 'Advanced filters',
         colorClass: 'bg-purple-50 hover:bg-purple-100',
         action: () => navigate('/inbox/search')
       },
-      { icon: '🏷️',
+      { icon:  <i className="fas fa-tag text-5xl mb-4"/>,
         title: 'By Label',
         description: 'Organize emails by labels',
         colorClass: 'bg-yellow-50 hover:bg-yellow-100',
