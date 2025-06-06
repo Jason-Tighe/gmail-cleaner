@@ -8,13 +8,26 @@ const gmailService = new GmailService();
 export const getEmails = async (req, res) => {
     try {
         console.log('Fetching emails for user:', req.query);
-        const { emailAddress, accessToken} = req.query
-        // const tokenValidity = await gmailService.checkTokenValidity(accessToken);
-        // console.log('Token validity:', tokenValidity);
-        
-        const emails = await gmailService.getEmails(emailAddress, accessToken);
-        const emailDetails = await gmailService.describeEmail(emailAddress, emails, accessToken);
-        res.status(200).json(emailDetails);
+        let labels = req.query.labelIds;
+        if (!Array.isArray(labels)) {
+            labels = labels ? [labels] : [];
+        }
+        const filters = {
+            emailAddress: req.query.email,
+            filter: req.query.filter,
+            startDate: req.query.startDate,
+            endDate: req.query.endDate,
+            largerThan: req.query.largerThan,
+            smallerThan: req.query.smallerThan,
+            hasAttachment: req.query.hasAttachment,
+            labelIds: labels,
+            labelMatch: req.query.labelMatch, // 'AND' or 'OR'
+            subject: req.query.subject,
+            sender: req.query.sender, // i don't feel like supporting an array for this
+        } 
+        const accessToken = req.headers.authorization;    
+        const { cacheKey, emailTotalCount } = await gmailService.getEmails(filters, accessToken);
+        res.status(200).json({ cacheKey, emailTotalCount });
     } catch (error) {
         console.error('Error fetching emails:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });

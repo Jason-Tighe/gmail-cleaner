@@ -6,6 +6,7 @@ import Dropdown from "./DropDown";
 import Delete from "./Delete";
 import { useAuth } from "../context/AuthContext";
 import RangeFilter from "./RangeFitler";
+import qs from "qs";
 
 type EmailResponse = {
   emailTotalCount: number;
@@ -33,15 +34,16 @@ export default function ByAdvancedFilters() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sizeRange, setSizeRange] = useState<[number, number]>([50000, 500000]);
+  const [labelMatch, setLabelMatch] = useState<"AND" | "OR">("AND");
   const hasFetched = useRef(false);
 
-  const formatBytes = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
-  };
+  // const formatBytes = (bytes: number) => {
+  //   if (bytes === 0) return "0 Bytes";
+  //   const k = 1024;
+  //   const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  //   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  //   return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
+  // };
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -83,11 +85,15 @@ export default function ByAdvancedFilters() {
           endDate: dateRangeEnabled ? endDate : undefined,
           filter,
           hasAttachment,
-          smallerThan: formatBytes(sizeRange[0]),
-          largerThan: formatBytes(sizeRange[1]),
+          smallerThan: sizeRange[1],
+          largerThan: sizeRange[0],
           from,
           subject,
-          label: label.join(","),
+          labelIds: label,
+          labelMatch
+        },
+        paramsSerializer: (params) => {
+          return qs.stringify(params, { arrayFormat: "repeat" });
         },
       });
 
@@ -175,6 +181,34 @@ export default function ByAdvancedFilters() {
             placeholder="e.g., Weekly Report"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm"
           />
+        </div>
+      </div>
+      <div className="flex justify-center space-x-6">
+        <div className="flex items-center space-x-2">
+          <input
+            type="radio"
+            id="labelMatchAnd"
+            value="AND"
+            checked={labelMatch === "AND"}
+            onChange={() => setLabelMatch("AND")}
+            className="text-blue-600"
+          />
+          <label htmlFor="labelMatchAnd" className="text-sm font-medium text-gray-700">
+            Match <strong>ALL</strong> labels (AND)
+          </label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="radio"
+            id="labelMatchOr"
+            value="OR"
+            checked={labelMatch === "OR"}
+            onChange={() => setLabelMatch("OR")}
+            className="text-blue-600"
+          />
+          <label htmlFor="labelMatchOr" className="text-sm font-medium text-gray-700">
+            Match <strong>ANY</strong> label (OR)
+          </label>
         </div>
       </div>
 
