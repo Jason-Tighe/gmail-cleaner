@@ -422,32 +422,26 @@ export default class GmailService {
     }
   }
 
-  async fetchEmailsByLabelsWDateRange(email, labels, filter, startDate, endDate, accessToken) {
-    try {
-      console.log('labels:', labels);
+  async fetchEmailsByLabelsWDateRange(email, labels, labelMatch, filter, startDate, endDate, accessToken) {
+  try {
+    labelMatch = (labelMatch || '').toUpperCase().trim();
+    if (!Array.isArray(labels)) {
+      labels = labels ? [labels] : [];
+    }
+
+    const allMessages = new Set();
+    const baseQuery = `after:${startDate} before:${endDate}` +
+      (filter === 'unread' ? ' is:unread' : filter === 'read' ? ' -is:unread' : '');
+
+    const fetchWithLabels = async (labelIds) => {
       let nextPageToken = null;
-      const allMessages = [];
-      let query = `after:${startDate} before:${endDate}`;
-
-      if (filter === 'unread') {
-        query += ' is:unread';
-      } else if (filter === 'read') {
-        query += ' -is:unread';
-      }
-
-      console.log('Query in fetchEmailsByLabelsWDateRange:', query);
+      const messages = [];
 
       do {
         const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
-        url.searchParams.append("q", query);
-
-        labels.forEach(labelId => {
-          url.searchParams.append("labelIds", labelId);
-        });
-
-        if (nextPageToken) {
-          url.searchParams.append("pageToken", nextPageToken);
-        }
+        url.searchParams.append("q", baseQuery);
+        labelIds.forEach(labelId => url.searchParams.append("labelIds", labelId));
+        if (nextPageToken) url.searchParams.append("pageToken", nextPageToken);
 
         const response = await fetch(url.toString(), {
           method: 'GET',
@@ -463,48 +457,58 @@ export default class GmailService {
         }
 
         const data = await response.json();
-        const ids = (data.messages || []).map(msg => msg.id);
-        allMessages.push(...ids);
+        (data.messages || []).forEach(msg => messages.push(msg.id));
         nextPageToken = data.nextPageToken;
       } while (nextPageToken);
 
-      const emailTotalCount = allMessages.length;
-      const cacheKey = `emails_${email}_${labels.join('_')}_${startDate}_${endDate}_${filter}`;
-      await setCache(cacheKey, allMessages, 3600000);
+      return messages;
+    };
 
-      console.log('Fetched emails by label:', allMessages.length);
-      return { emailTotalCount, cacheKey };
-    } catch (error) {
-      console.error('Error fetching emails by label:', error);
-      return [];
-    }
-  }
-
-  async fetchEmailsByLabels(email, labels, filter, accessToken) {
-    try {
-      let nextPageToken = null;
-      const allMessages = [];
-      let query = '';
-
-      if (filter === 'unread') {
-        query += ' is:unread';
-      } else if (filter === 'read') {
-        query += ' -is:unread';
+    if (labelMatch === 'AND') {
+      const msgs = await fetchWithLabels(labels);
+      msgs.forEach(id => allMessages.add(id));
+    } else if (labelMatch === 'OR') {
+      for (const labelId of labels) {
+        const msgs = await fetchWithLabels([labelId]);
+        msgs.forEach(id => allMessages.add(id));
       }
+    } else {
+      throw new Error('Invalid labelMatch value. Must be "AND" or "OR".');
+    }
 
-      console.log('Query in fetchEmailsByLabels:', query);
+    const allMessagesArr = Array.from(allMessages);
+    const emailTotalCount = allMessagesArr.length;
+    const cacheKey = `emails_${email}_${labels.join('_')}_${startDate}_${endDate}_${filter}_${labelMatch}`;
+    await setCache(cacheKey, allMessagesArr, 3600000);
+
+    console.log('Fetched emails by label:', emailTotalCount);
+    return { emailTotalCount, cacheKey };
+  } catch (error) {
+    console.error('Error fetching emails by label:', error);
+    return [];
+  }
+}
+
+
+async fetchEmailsByLabels(email, labels, labelMatch, filter, accessToken) {
+  try {
+    labelMatch = (labelMatch || '').toUpperCase().trim();
+    if (!Array.isArray(labels)) {
+      labels = labels ? [labels] : [];
+    }
+
+    const allMessages = new Set();
+    const baseQuery = (filter === 'unread' ? ' is:unread' : filter === 'read' ? ' -is:unread' : '');
+
+    const fetchWithLabels = async (labelIds) => {
+      let nextPageToken = null;
+      const messages = [];
 
       do {
         const url = new URL(`${this.baseUrl}/gmail/v1/users/me/messages`);
-        url.searchParams.append("q", query);
-
-        labels.forEach(labelId => {
-          url.searchParams.append("labelIds", labelId);
-        });
-
-        if (nextPageToken) {
-          url.searchParams.append("pageToken", nextPageToken);
-        }
+        url.searchParams.append("q", baseQuery);
+        labelIds.forEach(labelId => url.searchParams.append("labelIds", labelId));
+        if (nextPageToken) url.searchParams.append("pageToken", nextPageToken);
 
         const response = await fetch(url.toString(), {
           method: 'GET',
@@ -520,22 +524,38 @@ export default class GmailService {
         }
 
         const data = await response.json();
-        const ids = (data.messages || []).map(msg => msg.id);
-        allMessages.push(...ids);
+        (data.messages || []).forEach(msg => messages.push(msg.id));
         nextPageToken = data.nextPageToken;
       } while (nextPageToken);
 
-      const emailTotalCount = allMessages.length;
-      const cacheKey = `emails_${email}_${labels.join('_')}_${filter}`;
-      await setCache(cacheKey, allMessages, 3600000);
+      return messages;
+    };
 
-      console.log('Fetched emails by label:', allMessages.length);
-      return { emailTotalCount, cacheKey };
-    } catch (error) {
-      console.error('Error fetching emails by label:', error);
-      return [];
+    if (labelMatch === 'AND') {
+      const msgs = await fetchWithLabels(labels);
+      msgs.forEach(id => allMessages.add(id));
+    } else if (labelMatch === 'OR') {
+      for (const labelId of labels) {
+        const msgs = await fetchWithLabels([labelId]);
+        msgs.forEach(id => allMessages.add(id));
+      }
+    } else {
+      throw new Error('Invalid labelMatch value. Must be "AND" or "OR".');
     }
+
+    const allMessagesArr = Array.from(allMessages);
+    const emailTotalCount = allMessagesArr.length;
+    const cacheKey = `emails_${email}_${labels.join('_')}_${filter}_${labelMatch}`;
+    await setCache(cacheKey, allMessagesArr, 3600000);
+
+    console.log('Fetched emails by label:', emailTotalCount);
+    return { emailTotalCount, cacheKey };
+  } catch (error) {
+    console.error('Error fetching emails by label:', error);
+    return [];
   }
+}
+
 
   async batchDeleteEmails(email, accessToken, cacheKey) {
     try {

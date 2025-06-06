@@ -31,6 +31,7 @@ export default function ByLabel() {
     const accessToken = user?.accessToken || localStorage.getItem("accessToken");
     const [cacheKey, setCacheKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [labelMatch, setLabelMatch] = useState<"AND" | "OR">("AND");
 
 
 
@@ -69,6 +70,7 @@ export default function ByLabel() {
                     labelIds: selectedLabelIds,
                     startDate,
                     endDate,
+                    labelMatch: labelMatch,
                     filter: emailFilter,
                 },
                 paramsSerializer: (params) => {
@@ -97,7 +99,34 @@ export default function ByLabel() {
 
     return (
         <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 flex flex-col space-y-6">
-
+            <div className="flex justify-center space-x-6">
+        <div className="flex items-center space-x-2">
+          <input
+            type="radio"
+            id="labelMatchAnd"
+            value="AND"
+            checked={labelMatch === "AND"}
+            onChange={() => setLabelMatch("AND")}
+            className="text-blue-600"
+          />
+          <label htmlFor="labelMatchAnd" className="text-sm font-medium text-gray-700">
+            Match <strong>ALL</strong> labels (AND)
+          </label>
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="radio"
+            id="labelMatchOr"
+            value="OR"
+            checked={labelMatch === "OR"}
+            onChange={() => setLabelMatch("OR")}
+            className="text-blue-600"
+          />
+          <label htmlFor="labelMatchOr" className="text-sm font-medium text-gray-700">
+            Match <strong>ANY</strong> label (OR)
+          </label>
+        </div>
+      </div>
             <div>
             <Label
                 labels={labels}

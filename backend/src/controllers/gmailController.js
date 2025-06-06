@@ -105,7 +105,7 @@ export const getLabels = async (req, res) => {
 // Get Emails by Label
 export const getEmailsByLabel = async (req, res) => {
     try {
-        const { email, filter, startDate, endDate } = req.query;
+        const { email, labelMatch, filter, startDate, endDate } = req.query;
         let labels = req.query.labelIds;
         console.log('headers:', req.headers);
         console.log('Query parameters:', req.query);
@@ -115,9 +115,9 @@ export const getEmailsByLabel = async (req, res) => {
             labels = [labels];
         }
         if(startDate === '' && endDate === '') {
-            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabels(email, labels, filter, accessToken));
+            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabels(email, labels, labelMatch, filter, accessToken));
         } else {
-            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabelsWDateRange(email, labels, filter, startDate, endDate, accessToken));
+            ({ emailTotalCount, cacheKey} = await gmailService.fetchEmailsByLabelsWDateRange(email, labels, labelMatch, filter, startDate, endDate, accessToken));
         }
         res.status(200).json({ emailTotalCount, cacheKey} );
     } catch (error) {
